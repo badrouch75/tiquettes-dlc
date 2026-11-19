@@ -1,0 +1,54 @@
+plugins {
+    id 'com.android.application'
+}
+
+def runNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1') as int
+def ksFile = rootProject.file('release.jks')
+def ksPass = System.getenv('KEYSTORE_PASSWORD')
+
+android {
+    namespace 'app.etiquettes.dlc'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'app.etiquettes.dlc'
+        minSdk 24
+        targetSdk 33
+        versionCode runNumber
+        versionName "1.0.${runNumber}"
+    }
+
+    signingConfigs {
+        release {
+            if (ksFile.exists() && ksPass) {
+                storeFile ksFile
+                storePassword ksPass
+                keyAlias 'etiquettes'
+                keyPassword ksPass
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // Cle fixe si fournie (mises a jour sans desinstaller), sinon cle de debug.
+            signingConfig (ksFile.exists() && ksPass) ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+dependencies {
+    // Bibliotheque officielle Sunmi pour l'imprimante integree
+    implementation 'com.sunmi:printerlibrary:1.0.18'
+}

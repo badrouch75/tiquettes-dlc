@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Étiquettes DLC</title>
+<style>
+:root{
+  --paper:#F3EFE6; --card:#FFFDF8; --ink:#16130F; --mute:#6B645A; --line:#D9D2C3;
+  --maison:#1F6F4A; --court:#C2410C; --entame:#1D4E89;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);
+  font-family:system-ui,-apple-system,Roboto,"Segoe UI",sans-serif;font-size:16px;
+  overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+input,select{font:inherit;color:inherit}
+
+/* ---------- Barre du haut ---------- */
+header{position:sticky;top:0;z-index:5;background:var(--ink);color:var(--card);padding:10px 12px 0}
+.top{display:flex;align-items:center;gap:8px}
+.top h1{flex:1;margin:0;font-size:19px;font-weight:800;letter-spacing:.02em;text-transform:uppercase}
+.opbtn{background:var(--card);color:var(--ink);border-radius:999px;padding:9px 14px;font-weight:800;font-size:15px;
+  max-width:46vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opbtn small{font-weight:600;color:var(--mute);margin-right:4px}
+.gear{width:44px;height:44px;border-radius:12px;background:#2B2620;font-size:22px;line-height:44px;text-align:center}
+.tabs{display:flex;gap:6px;margin-top:10px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:9px 11px;border-radius:999px;background:#2B2620;color:#CFC8BA;font-weight:700;font-size:14px}
+.tab[aria-pressed="true"]{background:var(--card);color:var(--ink)}
+#pstate{display:none;margin:0 -12px;padding:8px 12px;background:var(--court);color:#fff;font-weight:700;font-size:14px}
+
+/* ---------- Grille de produits ---------- */
+main{padding:10px 10px 28px}
+.sec{margin:14px 4px 8px;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.prod{position:relative;display:flex;flex-direction:column;justify-content:space-between;text-align:left;
+  min-height:86px;padding:10px 10px 10px 20px;background:var(--card);border:1.5px solid var(--line);border-radius:10px;
+  overflow:hidden}
+.prod:active{transform:scale(.97);background:#F0EADC}
+.prod::before{content:"";position:absolute;left:0;top:0;bottom:0;width:9px;background:var(--c)}
+.prod::after{content:"";position:absolute;left:9px;top:0;bottom:0;border-left:2px dotted var(--line)}
+.prod .n{font-weight:800;font-size:16.5px;line-height:1.15}
+.prod .d{align-self:flex-start;margin-top:8px;padding:3px 8px;border:2px solid var(--c);color:var(--c);
+  border-radius:6px;font-weight:800;font-size:13px;letter-spacing:.03em}
+.c-maison{--c:var(--maison)} .c-court{--c:var(--court)} .c-entame{--c:var(--entame)}
+.empty{padding:40px 16px;text-align:center;color:var(--mute)}
+
+/* ---------- Panneaux (bas d'écran) ---------- */
+.veil{position:fixed;inset:0;z-index:20;background:rgba(22,19,15,.55);display:none;align-items:flex-end}
+.veil.on{display:flex}
+.sheet{width:100%;max-height:94vh;overflow:auto;background:var(--paper);border-radius:18px 18px 0 0;padding:14px 14px 18px}
+.sheet h2{margin:0 0 10px;font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
+.sheet h2 span{flex:1}
+.x{width:44px;height:44px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);font-size:22px;line-height:40px}
+.preview{display:flex;justify-content:center;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:8px}
+.preview canvas{width:62%;max-width:250px;height:auto;image-rendering:auto}
+.row{display:flex;align-items:center;gap:10px;margin-top:12px}
+.row label{flex:1;font-weight:700}
+.row small{display:block;font-weight:500;color:var(--mute);font-size:13px}
+.step{display:flex;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:12px;overflow:hidden}
+.step button{width:52px;height:50px;font-size:26px;font-weight:700}
+.step button:active{background:#EDE6D6}
+.step b{min-width:58px;text-align:center;font-size:18px}
+.field{height:50px;padding:0 12px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;font-weight:700}
+.go{display:block;width:100%;margin-top:16px;height:66px;border-radius:14px;background:var(--ink);color:var(--card);
+  font-size:21px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.go:active{background:#3A342C}
+.go[disabled]{opacity:.5}
+.alt{display:block;width:100%;margin-top:10px;height:50px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);font-weight:700}
+.danger{color:#B42318;border-color:#E7B8B2}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:flex;align-items:center;gap:6px;height:50px;padding:0 16px;border-radius:999px;background:var(--card);
+  border:1.5px solid var(--line);font-weight:800;font-size:17px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.chip .del{margin-right:-8px;width:34px;height:34px;border-radius:50%;font-size:18px;color:var(--mute)}
+.note{margin-top:10px;padding:10px 12px;background:#FBF3DF;border:1.5px solid #E8D9A8;border-radius:10px;font-size:13.5px;line-height:1.35}
+.list{margin-top:8px;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+.li{display:flex;align-items:center;gap:10px;width:100%;min-height:54px;padding:8px 12px;text-align:left;border-top:1.5px solid var(--line)}
+.li:first-child{border-top:0}
+.li b{flex:1;font-size:15.5px}
+.li i{font-style:normal;font-weight:800;font-size:13px;color:var(--c);border:2px solid var(--c);border-radius:6px;padding:2px 7px}
+.li em{font-style:normal;color:var(--mute);font-size:13px}
+.sw{position:relative;width:60px;height:34px;border-radius:999px;background:#CFC8BA;flex:0 0 auto}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:28px;height:28px;border-radius:50%;background:#fff;transition:left .15s}
+.sw[aria-checked="true"]{background:var(--maison)}
+.sw[aria-checked="true"]::after{left:29px}
+.menu{display:grid;gap:8px}
+#toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:50;max-width:88vw;padding:13px 18px;
+  border-radius:12px;background:var(--ink);color:var(--card);font-weight:700;text-align:center;display:none}
+#toast.err{background:#B42318}
+@media (prefers-reduced-motion:reduce){.sw::after{transition:none}.prod:active{transform:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="top">
+    <h1>Étiquettes DLC</h1>
+    <button class="opbtn" id="opbtn" aria-label="Changer d'opérateur"></button>
+    <button class="gear" id="gear" aria-label="Réglages">⚙</button>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div id="pstate"></div>
+</header>
+
+<main id="main"></main>
+
+<div class="veil" id="veil"><div class="sheet" id="sheet"></div></div>
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   Données de départ — produits tirés de la carte.
+   days = durée de vie secondaire par défaut (J+n), modifiable dans Réglages.
+   ===================================================================== */
+var CATS = {
+  maison: {label:"Préparations maison", short:"Maison",  verb:"Fabriqué le", head:"PRÉPARATION MAISON"},
+  court:  {label:"Maison — durée courte", short:"Courte", verb:"Fabriqué le", head:"PRÉPARATION MAISON"},
+  entame: {label:"Produits entamés", short:"Entamés", verb:"Ouvert le",   head:"PRODUIT ENTAMÉ"}
+};
+var DEFAULTS = [
+  ["Caramel beurre salé","maison",3],["Sauce César","maison",3],["Vinaigrette miel-moutarde","maison",3],
+  ["Sauce tahini citronnée","maison",3],["Sauce soja citronnée","maison",3],["Sauce miel-moutarde","maison",3],
+  ["Sauce citronnée","maison",3],["Houmous","maison",3],["Granola","maison",3],["Tomates confites","maison",3],
+  ["Tomates cerises rôties","maison",3],["Poivrons confits","maison",3],["Pickles / oignons marinés","maison",3],
+  ["Poulet rôti","maison",3],["Poulet grillé","maison",3],
+
+  ["Sauce hollandaise","court",0],["Chantilly","court",0],["Guacamole","court",1],["Avocat préparé","court",0],
+  ["Crème à l'aneth","court",1],["Œufs pochés","court",1],["Œufs mollets","court",1],["Œufs durs","court",1],
+  ["Pâte à pancakes","court",1],["Pâte à gaufres","court",1],["Riz vinaigré","court",1],["Base shakshuka","court",1],
+  ["Chia pudding","court",1],["Fruits coupés","court",1],["Crudités préparées","court",1],
+
+  ["Saumon fumé","entame",2],["Saumon gravlax","entame",2],["Cream cheese","entame",3],["Feta","entame",3],
+  ["Comté","entame",3],["Parmesan","entame",3],["Cheddar","entame",3],["Halloumi","entame",3],["Bacon","entame",3],
+  ["Jambon fermier","entame",3],["Pastrami","entame",3],["Thon","entame",2],["Lait entier","entame",3],
+  ["Lait d'avoine","entame",3],["Lait d'amande","entame",3],["Lait de coco","entame",3],["Yaourt","entame",3],
+  ["Purée d'açaí","entame",3],["Purée de mangue","entame",3]
+];
+
+var LS = "dlc.v1";
+var S = load();
+var ui = {tab:"tous", cur:null};
+
+function fresh(){
+  return {
+    products: DEFAULTS.map(function(d,i){ return {id:"p"+i, name:d[0], cat:d[1], days:d[2]}; }),
+    ops: [], op: "",
+    opt: {label:false, direct:false, temp:"0 à 3 °C"},
+    uses: {}, log: [], seq: DEFAULTS.length
+  };
+}
+function load(){
+  try{
+    var r = JSON.parse(localStorage.getItem(LS));
+    if(r && Array.isArray(r.products)){
+      var f = fresh();
+      r.ops = r.ops || []; r.op = r.op || ""; r.uses = r.uses || {}; r.log = r.log || [];
+      r.opt = Object.assign(f.opt, r.opt || {}); r.seq = r.seq || (r.products.length + 100);
+      return r;
+    }
+  }catch(e){}
+  return fresh();
+}
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(S)); }catch(e){} }
+
+/* ---------- Petits outils ---------- */
+function $(id){ return document.getElementById(id); }
+function el(tag, attrs, kids){
+  var n = document.createElement(tag), k;
+  if(attrs) for(k in attrs){
+    if(k === "text") n.textContent = attrs[k];
+    else if(k === "on") for(var ev in attrs.on) n.addEventListener(ev, attrs.on[ev]);
+    else if(k === "cls") n.className = attrs[k];
+    else n.setAttribute(k, attrs[k]);
+  }
+  (kids || []).forEach(function(c){ if(c) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+  return n;
+}
+var JOURS = ["DIM","LUN","MAR","MER","JEU","VEN","SAM"];
+function p2(n){ return (n < 10 ? "0" : "") + n; }
+function fmtDate(d, year){ return p2(d.getDate()) + "/" + p2(d.getMonth()+1) + (year ? "/" + d.getFullYear() : ""); }
+function fmtTime(d){ return p2(d.getHours()) + ":" + p2(d.getMinutes()); }
+function addDays(d, n){ var x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() + n); return x; }
+function jLabel(n){ return n === 0 ? "Jour même" : "J+" + n; }
+var toastT;
+function toast(msg, err){
+  var t = $("toast"); t.textContent = msg; t.className = err ? "err" : ""; t.style.display = "block";
+  clearTimeout(toastT); toastT = setTimeout(function(){ t.style.display = "none"; }, err ? 4500 : 1800);
+}
+
+/* =====================================================================
+   Imprimante (pont Android). Hors tablette : aperçu seulement.
+   ===================================================================== */
+var hasPrinter = !!(window.Android && Android.printImage);
+var PSTATE = {
+  "-2":"Imprimante : erreur de communication", "-1":"Imprimante non connectée",
+  "2":"Imprimante en préparation…", "3":"Imprimante : communication anormale", "4":"Plus de papier",
+  "5":"Imprimante en surchauffe — patiente un instant", "6":"Capot de l'imprimante ouvert",
+  "7":"Imprimante : erreur du massicot", "505":"Aucune imprimante détectée"
+};
+function printerProblem(){
+  if(!hasPrinter) return "";
+  var st; try{ st = Android.status(); }catch(e){ return ""; }
+  return (st === 1) ? "" : (PSTATE[String(st)] || ("Imprimante : état " + st));
+}
+function refreshState(){
+  var m = printerProblem(), b = $("pstate");
+  b.textContent = m; b.style.display = m ? "block" : "none";
+}
+
+/* =====================================================================
+   Dessin de l'étiquette : 384 points de large = rouleau 58 mm.
+   Ce qui est affiché en aperçu est exactement ce qui sort de l'imprimante.
+   ===================================================================== */
+var W = 384, FONT = 'system-ui, Roboto, "Segoe UI", sans-serif';
+function wrap(ctx, text, maxW){
+  var words = text.split(/\s+/), lines = [], cur = "";
+  words.forEach(function(w){
+    var t = cur ? cur + " " + w : w;
+    if(ctx.measureText(t).width <= maxW || !cur) cur = t; else { lines.push(cur); cur = w; }
+  });
+  if(cur) lines.push(cur);
+  return lines;
+}
+function effective(p, made, days, orig){
+  var dlc = addDays(made, days), capped = false;
+  if(orig && orig < dlc){ dlc = orig; capped = true; }
+  return {dlc:dlc, capped:capped};
+}
+function drawLabel(p, made, days, orig){
+  var cat = CATS[p.cat], e = effective(p, made, days, orig);
+  var c = document.createElement("canvas"), ctx = c.getContext("2d"), pad = 10, inner = W - pad*2;
+
+  // Mise en page : on mesure d'abord, on dessine ensuite.
+  var size = 46, lines;
+  var name = p.name.toUpperCase();
+  do { ctx.font = "800 " + size + "px " + FONT; lines = wrap(ctx, name, inner); size -= 4; }
+  while((lines.length > 3 || lines.some(function(l){ return ctx.measureText(l).width > inner; })) && size >= 26);
+  size += 4;
+  var lh = Math.round(size * 1.08);
+  var foot = [jLabel(days) + (e.capped ? " (limité par la DLC d'origine)" : "") , "Conserver à " + S.opt.temp];
+  if(orig) foot.push("DLC d'origine : " + fmtDate(orig, true));
+  var H = 14 + 24 + 10 + lines.length*lh + 16 + 34 + 34 + 14 + 128 + 14 + foot.length*28 + 40 + 12;
+
+  c.width = W; c.height = H;
+  ctx.fillStyle = "#fff"; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = "#000"; ctx.textBaseline = "top";
+  var y = 14;
+
+  ctx.font = "700 20px " + FONT; ctx.fillText(cat.head, pad, y); y += 24 + 10;
+  ctx.font = "800 " + size + "px " + FONT;
+  lines.forEach(function(l){ ctx.fillText(l, pad, y); y += lh; });
+  y += 6; ctx.fillRect(pad, y, inner, 3); y += 10;
+
+  ctx.font = "500 24px " + FONT; ctx.fillText(cat.verb, pad, y); y += 34;
+  ctx.font = "800 28px " + FONT;
+  ctx.fillText(JOURS[made.getDay()] + " " + fmtDate(made, true) + "  " + fmtTime(made), pad, y); y += 34 + 14;
+
+  // Bandeau noir : la date limite, l'information la plus importante.
+  ctx.fillRect(0, y, W, 128);
+  ctx.fillStyle = "#fff";
+  ctx.font = "700 22px " + FONT; ctx.fillText("À CONSOMMER JUSQU'AU", pad, y + 12);
+  var big = JOURS[e.dlc.getDay()] + " " + fmtDate(e.dlc, true), bs = 62;
+  do { ctx.font = "800 " + bs + "px " + FONT; bs -= 2; } while(ctx.measureText(big).width > inner && bs > 30);
+  ctx.fillText(big, pad, y + 46);
+  ctx.fillStyle = "#000"; y += 128 + 14;
+
+  ctx.font = "600 23px " + FONT;
+  foot.forEach(function(f){ ctx.fillText(f, pad, y); y += 28; });
+  y += 4;
+  ctx.font = "800 28px " + FONT; ctx.fillText("Par : " + (S.op || "—"), pad, y);
+  return c;
+}
+
+/* =====================================================================
+   Écran principal
+   ===================================================================== */
+function renderTop(){
+  var b = $("opbtn"); b.textContent = "";
+  b.appendChild(el("small", {text:"Par"})); b.appendChild(document.createTextNode(S.op || "à choisir"));
+  var tabs = $("tabs"); tabs.textContent = "";
+  [["tous","Tous"],["maison","Maison"],["court","Courte durée"],["entame","Entamés"]].forEach(function(t){
+    tabs.appendChild(el("button", {cls:"tab", "aria-pressed": String(ui.tab === t[0]), text:t[1],
+      on:{click:function(){ ui.tab = t[0]; render(); window.scrollTo(0,0); }}}));
+  });
+}
+function prodBtn(p){
+  return el("button", {cls:"prod c-" + p.cat, on:{click:function(){ pick(p); }}}, [
+    el("span", {cls:"n", text:p.name}), el("span", {cls:"d", text:jLabel(p.days)})
+  ]);
+}
+function render(){
+  renderTop();
+  var m = $("main"); m.textContent = "";
+  if(!S.products.length){ m.appendChild(el("div", {cls:"empty", text:"Aucun produit. Ajoute-en dans Réglages."})); return; }
+  if(ui.tab === "tous"){
+    var top = S.products.filter(function(p){ return S.uses[p.id]; })
+      .sort(function(a,b){ return S.uses[b.id] - S.uses[a.id]; }).slice(0,6);
+    if(top.length >= 2){
+      m.appendChild(el("div", {cls:"sec", text:"Les plus utilisés"}));
+      m.appendChild(el("div", {cls:"grid"}, top.map(prodBtn)));
+    }
+  }
+  Object.keys(CATS).forEach(function(k){
+    if(ui.tab !== "tous" && ui.tab !== k) return;
+    var list = S.products.filter(function(p){ return p.cat === k; });
+    if(!list.length) return;
+    m.appendChild(el("div", {cls:"sec", text:CATS[k].label}));
+    m.appendChild(el("div", {cls:"grid"}, list.map(prodBtn)));
+  });
+}
+
+/* ---------- Panneaux ---------- */
+function openSheet(nodes){
+  var s = $("sheet"); s.textContent = ""; nodes.forEach(function(n){ if(n) s.appendChild(n); });
+  $("veil").classList.add("on"); s.scrollTop = 0;
+}
+function closeSheet(){ $("veil").classList.remove("on"); ui.cur = null; }
+function title(text, back){
+  return el("h2", null, [el("span", {text:text}),
+    el("button", {cls:"x", "aria-label": back ? "Retour" : "Fermer", text: back ? "‹" : "×", on:{click: back || closeSheet}})]);
+}
+$("veil").addEventListener("click", function(e){ if(e.target === $("veil")) closeSheet(); });
+window.onAndroidBack = function(){ if($("veil").classList.contains("on")){ closeSheet(); return true; } return false; };
+
+function stepper(get, set, min, max, fmt){
+  var b = el("b", {text:fmt(get())});
+  function mv(d){ var v = Math.max(min, Math.min(max, get() + d)); set(v); b.textContent = fmt(v); }
+  return el("div", {cls:"step"}, [
+    el("button", {text:"−", "aria-label":"Moins", on:{click:function(){ mv(-1); }}}), b,
+    el("button", {text:"+", "aria-label":"Plus", on:{click:function(){ mv(1); }}})
+  ]);
+}
+
+/* ---------- Choix d'un produit -> aperçu -> impression ---------- */
+function pick(p){
+  if(!S.op){ operators(function(){ pick(p); }); return; }
+  var st = {p:p, days:p.days, copies:1, orig:null, made:new Date()};
+  ui.cur = st;
+  if(S.opt.direct && p.cat !== "entame"){ doPrint(st); return; }
+
+  var holder = el("div", {cls:"preview"});
+  function redraw(){ st.made = new Date(); holder.textContent = ""; holder.appendChild(drawLabel(p, st.made, st.days, st.orig)); }
+  var origRow = null;
+  if(p.cat === "entame"){
+    var inp = el("input", {cls:"field", type:"date", "aria-label":"DLC d'origine"});
+    inp.addEventListener("change", function(){
+      st.orig = inp.value ? new Date(inp.value + "T00:00:00") : null; redraw();
+    });
+    origRow = el("div", {cls:"row"}, [el("label", null, ["DLC de l'emballage", el("small", {text:"Facultatif. L'étiquette ne la dépassera jamais."})]), inp]);
+  }
+  var go = el("button", {cls:"go", text: hasPrinter ? "Imprimer" : "Imprimer (aperçu seul)", on:{click:function(){ doPrint(st, go); }}});
+  openSheet([
+    title(p.name), holder,
+    el("div", {cls:"row"}, [el("label", null, ["Durée", el("small", {text:"Pour cette étiquette seulement"})]),
+      stepper(function(){ return st.days; }, function(v){ st.days = v; redraw(); }, 0, 60, jLabel)]),
+    origRow,
+    el("div", {cls:"row"}, [el("label", {text:"Nombre d'étiquettes"}),
+      stepper(function(){ return st.copies; }, function(v){ st.copies = v; }, 1, 20, String)]),
+    go
+  ]);
+  redraw();
+}
+function doPrint(st, btn){
+  st.made = new Date();
+  var canvas = drawLabel(st.p, st.made, st.days, st.orig);
+  var e = effective(st.p, st.made, st.days, st.orig);
+  if(hasPrinter){
+    var pb = printerProblem();
+    if(pb){ toast(pb, true); refreshState(); return; }
+    if(btn) btn.disabled = true;
+    var r;
+    try{ r = Android.printImage(canvas.toDataURL("image/png"), st.copies, !!S.opt.label); }
+    catch(err){ r = "Erreur : " + err; }
+    if(btn) btn.disabled = false;
+    if(r !== "ok"){ toast(r, true); return; }
+  }
+  S.uses[st.p.id] = (S.uses[st.p.id] || 0) + 1;
+  S.log.unshift({t:st.made.getTime(), n:st.p.name, d:e.dlc.getTime(), o:S.op, q:st.copies});
+  if(S.log.length > 300) S.log.length = 300;
+  save(); closeSheet(); render();
+  toast(hasPrinter ? "Imprimé ✓  " + st.p.name : "Aperçu seulement : imprimante non disponible ici");
+}
+
+/* ---------- Opérateurs ---------- */
+function operators(then){
+  var inp = el("input", {cls:"field", type:"text", maxlength:"14", placeholder:"Prénom ou initiales", autocapitalize:"characters", style:"flex:1;min-width:0"});
+  function add(){
+    var v = inp.value.trim(); if(!v) return;
+    if(S.ops.indexOf(v) < 0) S.ops.push(v);
+    choose(v);
+  }
+  function choose(v){ S.op = v; save(); closeSheet(); render(); if(then) then(); }
+  var chips = el("div", {cls:"chips"}, S.ops.map(function(o){
+    return el("button", {cls:"chip", "aria-pressed":String(o === S.op), on:{click:function(){ choose(o); }}}, [
+      el("span", {text:o}),
+      el("span", {cls:"del", role:"button", "aria-label":"Retirer " + o, text:"×", on:{click:function(ev){
+        ev.stopPropagation(); S.ops = S.ops.filter(function(x){ return x !== o; }); if(S.op === o) S.op = "";
+        save(); render(); operators(then);
+      }}})
+    ]);
+  }));
+  openSheet([
+    title("Qui étiquette ?"), chips,
+    el("div", {cls:"row"}, [inp, el("button", {cls:"field", text:"Ajouter", on:{click:add}})]),
+    el("div", {cls:"note", text:"Le nom choisi est imprimé sur chaque étiquette et reste sélectionné jusqu'au prochain changement."})
+  ]);
+  inp.addEventListener("keydown", function(e){ if(e.key === "Enter") add(); });
+}
+
+/* ---------- Réglages ---------- */
+function toggle(label, hint, key){
+  var sw = el("button", {cls:"sw", role:"switch", "aria-checked":String(!!S.opt[key]), "aria-label":label});
+  sw.addEventListener("click", function(){ S.opt[key] = !S.opt[key]; sw.setAttribute("aria-checked", String(S.opt[key])); save(); });
+  return el("div", {cls:"row"}, [el("label", null, [label, el("small", {text:hint})]), sw]);
+}
+function settings(){
+  var temp = el("input", {cls:"field", type:"text", value:S.opt.temp, maxlength:"16", style:"width:130px", "aria-label":"Température de conservation"});
+  temp.addEventListener("change", function(){ S.opt.temp = temp.value.trim() || "0 à 3 °C"; save(); });
+  openSheet([
+    title("Réglages"),
+    el("div", {cls:"menu"}, [
+      el("button", {cls:"alt", text:"Produits et durées", on:{click:products}}),
+      el("button", {cls:"alt", text:"Historique des étiquettes", on:{click:showHistory}})
+    ]),
+    toggle("Étiquettes adhésives", "À activer avec un rouleau d'étiquettes prédécoupées. Laisser éteint pour du papier ticket.", "label"),
+    toggle("Impression en 1 touche", "Imprime dès qu'on touche un produit, sans aperçu (sauf produits entamés).", "direct"),
+    el("div", {cls:"row"}, [el("label", null, ["Température imprimée", el("small", {text:"Mention « Conserver à… »"})]), temp]),
+    el("div", {cls:"note", text:"Les durées fournies sont des valeurs de départ. Elles doivent correspondre à ton plan de maîtrise sanitaire et, pour les produits entamés, à la durée après ouverture indiquée par le fabricant."}),
+    el("button", {cls:"alt", text:"Tester l'imprimante", on:{click:function(){
+      var m = printerProblem();
+      toast(hasPrinter ? (m || "Imprimante prête ✓") : "Imprimante non disponible sur cet appareil", !!m || !hasPrinter);
+    }}})
+  ]);
+}
+function products(){
+  var list = el("div", {cls:"list"}, S.products.map(function(p){
+    return el("button", {cls:"li c-" + p.cat, on:{click:function(){ editProduct(p); }}}, [
+      el("b", {text:p.name}), el("em", {text:CATS[p.cat].short}), el("i", {text:jLabel(p.days)})
+    ]);
+  }));
+  openSheet([
+    title("Produits et durées", settings),
+    el("button", {cls:"go", style:"margin-top:0;height:54px;font-size:17px", text:"+ Nouveau produit", on:{click:function(){ editProduct(null); }}}),
+    list,
+    el("button", {cls:"alt danger", text:"Rétablir la liste d'origine", on:{click:function(){
+      if(this.dataset.sure){ var f = fresh(); S.products = f.products; S.uses = {}; S.seq = f.seq; save(); render(); products(); toast("Liste d'origine rétablie"); }
+      else { this.dataset.sure = "1"; this.textContent = "Toucher encore pour confirmer"; }
+    }}})
+  ]);
+}
+function editProduct(p){
+  var d = p ? {name:p.name, cat:p.cat, days:p.days} : {name:"", cat:"maison", days:3};
+  var name = el("input", {cls:"field", type:"text", value:d.name, maxlength:"40", placeholder:"Nom du produit", style:"width:100%"});
+  var cat = el("select", {cls:"field", "aria-label":"Catégorie"}, Object.keys(CATS).map(function(k){
+    var o = el("option", {value:k, text:CATS[k].label}); if(k === d.cat) o.selected = true; return o;
+  }));
+  openSheet([
+    title(p ? "Modifier le produit" : "Nouveau produit", products),
+    name,
+    el("div", {cls:"row"}, [el("label", {text:"Catégorie"}), cat]),
+    el("div", {cls:"row"}, [el("label", null, ["Durée par défaut", el("small", {text:"Jour même = à jeter le soir"})]),
+      stepper(function(){ return d.days; }, function(v){ d.days = v; }, 0, 60, jLabel)]),
+    el("button", {cls:"go", text:"Enregistrer", on:{click:function(){
+      var n = name.value.trim(); if(!n){ toast("Il manque le nom du produit", true); return; }
+      if(p){ p.name = n; p.cat = cat.value; p.days = d.days; }
+      else S.products.push({id:"p" + (S.seq++), name:n, cat:cat.value, days:d.days});
+      save(); render(); products();
+    }}}),
+    p ? el("button", {cls:"alt danger", text:"Supprimer ce produit", on:{click:function(){
+      if(this.dataset.sure){ S.products = S.products.filter(function(x){ return x !== p; }); delete S.uses[p.id]; save(); render(); products(); }
+      else { this.dataset.sure = "1"; this.textContent = "Toucher encore pour confirmer"; }
+    }}}) : null
+  ]);
+}
+function showHistory(){
+  var rows = S.log.slice(0, 120).map(function(l){
+    var t = new Date(l.t), d = new Date(l.d);
+    return el("div", {cls:"li"}, [
+      el("b", {text:l.n + (l.q > 1 ? "  ×" + l.q : "")}),
+      el("em", {text:fmtDate(t) + " " + fmtTime(t) + " · " + (l.o || "—") + " → " + fmtDate(d)})
+    ]);
+  });
+  openSheet([
+    title("Historique", settings),
+    rows.length ? el("div", {cls:"list"}, rows) : el("div", {cls:"empty", text:"Aucune étiquette imprimée pour l'instant."})
+  ]);
+}
+
+/* ---------- Démarrage ---------- */
+$("opbtn").addEventListener("click", function(){ operators(); });
+$("gear").addEventListener("click", settings);
+render(); refreshState();
+setInterval(refreshState, 15000);
+document.addEventListener("visibilitychange", function(){ if(!document.hidden) refreshState(); });
+if(!S.op) operators();
+</script>
+</body>
+</html>
