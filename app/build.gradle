@@ -25,6 +25,9 @@ android {
                 storePassword ksPass
                 keyAlias 'etiquettes'
                 keyPassword ksPass
+                // Sunmi demande les deux schemas de signature (V1 + V2)
+                enableV1Signing true
+                enableV2Signing true
             }
         }
     }
