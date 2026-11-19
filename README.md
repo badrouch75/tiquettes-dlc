@@ -7,7 +7,7 @@ de conservation et le nom de la personne.
 ## Installer sur la tablette
 
 Ouvrir dans Chrome sur la Sunmi :
-`https://github.com/badrouch75/etiquettes-dlc/releases/latest/download/etiquettes-dlc.apk`
+`https://github.com/badrouch75/tiquettes-dlc/releases/latest/download/etiquettes-dlc.apk`
 
 ## Modifier
 
