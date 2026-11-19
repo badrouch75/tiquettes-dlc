@@ -33,7 +33,7 @@ android {
         release {
             minifyEnabled false
             // Cle fixe si fournie (mises a jour sans desinstaller), sinon cle de debug.
-            signingConfig (ksFile.exists() && ksPass) ? signingConfigs.release : signingConfigs.debug
+            signingConfig = (ksFile.exists() && ksPass) ? signingConfigs.release : signingConfigs.debug
         }
     }
 
