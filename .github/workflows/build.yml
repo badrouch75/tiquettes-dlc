@@ -23,15 +23,11 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Cle de signature (si configuree)
-        env:
-          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
-        run: |
-          if [ -n "$KEYSTORE_B64" ]; then echo "$KEYSTORE_B64" | base64 -d > release.jks; fi
-
       - name: Compilation
         env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          # Cle de signature fixe, versionnee dans le depot : les mises a jour
+          # s'installent par-dessus l'ancienne version sans perdre les reglages.
+          KEYSTORE_PASSWORD: jyraQldjg2TyjbhtdK9sMTn_
         run: gradle --no-daemon assembleRelease
 
       - name: Preparer le fichier
